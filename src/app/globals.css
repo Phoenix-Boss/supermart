@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --primary: #EA580C;
+  --surface: #F9FAFB;
+  --border: #E5E7EB;
+  --card-bg: #FFFFFF;
+  --card-text: #1F2937;
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --primary: #EA580C;
+  --surface: #1F2937;
+  --border: #374151;
+  --card-bg: #111827;
+  --card-text: #F9FAFB;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-card-bg: var(--card-bg);
+  --color-card-text: var(--card-text);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  
+  /* Ensure sufficient contrast for text */
+  --text-contrast-primary: color-mix(in srgb, var(--primary) 90%, black 10%);
+  --text-contrast-surface: color-mix(in srgb, var(--surface) 90%, var(--foreground) 10%);
+}
+
+/* High contrast text utility classes */
+.high-contrast-text {
+  color: color-contrast(var(--background) vs white, black);
+}
+
+.high-contrast-bg {
+  background-color: color-contrast(var(--foreground) vs white, black);
+}
+
+/* Accessibility focus styles */
+*:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Smooth theme transitions */
+* {
+  transition: background-color 0.3s ease, 
+              border-color 0.3s ease, 
+              color 0.3s ease,
+              fill 0.3s ease,
+              stroke 0.3s ease;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+}
+
+/* Custom utility classes */
+.bg-theme-primary {
+  background-color: var(--primary);
+}
+
+.text-theme-primary {
+  color: var(--primary);
+}
+
+.bg-theme-surface {
+  background-color: var(--surface);
+}
+
+.text-theme-surface {
+  color: var(--surface);
+}
+
+.border-theme {
+  border-color: var(--border);
+}
+
+.bg-theme-card {
+  background-color: var(--card-bg);
+}
+
+.text-theme-card {
+  color: var(--card-text);
+}
+
+/* Ensure contrast for buttons */
+.btn-primary {
+  background-color: var(--primary);
+  color: color-contrast(var(--primary) vs white, black);
+}
+
+.btn-primary:hover {
+  background-color: color-mix(in srgb, var(--primary) 80%, black 20%);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
