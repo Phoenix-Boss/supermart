@@ -1,139 +1,163 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 
-interface Theme {
+interface CustomTheme {
   primary: string;
+  secondary: string;
   background: string;
-  foreground: string; // Renamed from 'text' to match CSS variables
+  foreground: string;
   surface: string;
   border: string;
+  cardBg: string;
+  cardText: string;
+  accent: string;
+  gradientStart: string;
+  gradientEnd: string;
 }
 
 interface ThemeContextType {
-  themeMode: 'light' | 'dark' | 'system' | 'custom';
-  customTheme: Theme;
-  setThemeMode: (mode: 'light' | 'dark' | 'system' | 'custom') => void;
-  updateCustomTheme: (updates: Partial<Theme>) => void;
-  resetToSystem: () => void;
+  themeMode: 'light' | 'dark';
+  customTheme: CustomTheme;
+  setThemeMode: (mode: 'light' | 'dark') => void;
+  toggleTheme: () => void;
+  updateCustomTheme: (theme: Partial<CustomTheme>) => void;
+  resetToDefault: (mode: 'light' | 'dark') => void;
 }
+
+const defaultLightTheme: CustomTheme = {
+  primary: '#EA580C', // orange-600
+  secondary: '#D97706', // amber-600
+  background: '#FFFFFF',
+  foreground: '#171717',
+  surface: '#F9FAFB',
+  border: '#E5E7EB',
+  cardBg: '#FFFFFF',
+  cardText: '#1F2937',
+  accent: '#F97316', // orange-500
+  gradientStart: '#FFFFFF',
+  gradientEnd: '#F9FAFB',
+};
+
+const defaultDarkTheme: CustomTheme = {
+  primary: '#F97316', // orange-500
+  secondary: '#F59E0B', // yellow-500
+  background: '#0A0A0A',
+  foreground: '#EDEDED',
+  surface: '#111827',
+  border: '#374151',
+  cardBg: '#111827',
+  cardText: '#F9FAFB',
+  accent: '#FBBF24', // amber-400
+  gradientStart: '#0F172A', // slate-900
+  gradientEnd: '#000000',
+};
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-// Default themes using HEX values that match CSS variable defaults
-const defaultLightTheme: Theme = {
-  primary: '#ea580c',
-  background: '#ffffff',
-  foreground: '#1e293b',
-  surface: '#f8fafc',
-  border: '#e2e8f0',
-};
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [themeMode, setThemeMode] = useState<'light' | 'dark'>('dark'); // Default to dark
+  const [customTheme, setCustomTheme] = useState<CustomTheme>(defaultDarkTheme);
+  const [mounted, setMounted] = useState(false);
 
-const defaultDarkTheme: Theme = {
-  primary: '#fb923c',
-  background: '#0f172a',
-  foreground: '#f1f5f9',
-  surface: '#1e293b',
-  border: '#334155',
-};
-
-export function ThemeProvider({ children }: { children: ReactNode }) {
-  // DEFAULT TO DARK MODE
-  const [themeMode, setThemeMode] = useState<'light' | 'dark' | 'system' | 'custom'>('dark');
-  const [customTheme, setCustomTheme] = useState<Theme>(defaultDarkTheme);
-  const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>('dark');
-
-  // Detect system theme
+  // Initialize theme from localStorage
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    setSystemTheme(mediaQuery.matches ? 'dark' : 'light');
-
-    const handleChange = (e: MediaQueryListEvent) => {
-      setSystemTheme(e.matches ? 'dark' : 'light');
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
+    setMounted(true);
+    const savedThemeMode = localStorage.getItem('themeMode') as 'light' | 'dark' | null;
+    const savedCustomTheme = localStorage.getItem('customTheme');
+    
+    if (savedThemeMode) {
+      setThemeMode(savedThemeMode);
+      if (savedCustomTheme) {
+        try {
+          const parsed = JSON.parse(savedCustomTheme);
+          setCustomTheme(parsed);
+        } catch {
+          setCustomTheme(savedThemeMode === 'light' ? defaultLightTheme : defaultDarkTheme);
+        }
+      } else {
+        setCustomTheme(savedThemeMode === 'light' ? defaultLightTheme : defaultDarkTheme);
+      }
+    } else {
+      // Check system preference
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const mode = prefersDark ? 'dark' : 'light';
+      setThemeMode(mode);
+      setCustomTheme(mode === 'light' ? defaultLightTheme : defaultDarkTheme);
+    }
   }, []);
 
   // Apply theme to document
   useEffect(() => {
-    let themeToApply: Theme;
-    let isDarkMode = false;
+    if (!mounted) return;
 
-    if (themeMode === 'system') {
-      themeToApply = systemTheme === 'dark' ? defaultDarkTheme : defaultLightTheme;
-      isDarkMode = systemTheme === 'dark';
-    } else if (themeMode === 'custom') {
-      themeToApply = customTheme;
-      isDarkMode = isDarkColor(themeToApply.background);
+    const theme = customTheme;
+    const root = document.documentElement;
+
+    // Apply CSS variables
+    root.style.setProperty('--color-primary', theme.primary);
+    root.style.setProperty('--color-secondary', theme.secondary);
+    root.style.setProperty('--color-background', theme.background);
+    root.style.setProperty('--color-foreground', theme.foreground);
+    root.style.setProperty('--color-surface', theme.surface);
+    root.style.setProperty('--color-border', theme.border);
+    root.style.setProperty('--color-card-bg', theme.cardBg);
+    root.style.setProperty('--color-card-text', theme.cardText);
+    root.style.setProperty('--color-accent', theme.accent);
+    root.style.setProperty('--color-gradient-start', theme.gradientStart);
+    root.style.setProperty('--color-gradient-end', theme.gradientEnd);
+
+    // Add/remove class for Tailwind dark mode
+    if (themeMode === 'dark') {
+      root.classList.add('dark');
+      root.classList.remove('light');
     } else {
-      themeToApply = themeMode === 'dark' ? defaultDarkTheme : defaultLightTheme;
-      isDarkMode = themeMode === 'dark';
+      root.classList.add('light');
+      root.classList.remove('dark');
     }
 
-    // SET CSS VARIABLES THAT MATCH globals.css
-    document.documentElement.style.setProperty('--background', themeToApply.background);
-    document.documentElement.style.setProperty('--foreground', themeToApply.foreground);
-    document.documentElement.style.setProperty('--primary', themeToApply.primary);
-    document.documentElement.style.setProperty('--surface', themeToApply.surface);
-    document.documentElement.style.setProperty('--border', themeToApply.border);
-
-    // Manage dark class for Tailwind variants
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [themeMode, customTheme, systemTheme]);
-
-  // Persist preferences
-  useEffect(() => {
+    // Save to localStorage
     localStorage.setItem('themeMode', themeMode);
     localStorage.setItem('customTheme', JSON.stringify(customTheme));
-  }, [themeMode, customTheme]);
+  }, [themeMode, customTheme, mounted]);
 
-  // Load saved preferences
-  useEffect(() => {
-    const savedMode = (localStorage.getItem('themeMode') as 'light' | 'dark' | 'system' | 'custom') || 'dark';
-    const savedTheme = localStorage.getItem('customTheme');
-    
-    setThemeMode(savedMode);
-    if (savedTheme) {
-      setCustomTheme(JSON.parse(savedTheme));
-    }
-  }, []);
-
-  const updateCustomTheme = (updates: Partial<Theme>) => {
-    setCustomTheme(prev => ({ ...prev, ...updates }));
-    setThemeMode('custom');
+  const toggleTheme = () => {
+    const newMode = themeMode === 'light' ? 'dark' : 'light';
+    setThemeMode(newMode);
+    setCustomTheme(newMode === 'light' ? defaultLightTheme : defaultDarkTheme);
   };
 
-  const resetToSystem = () => {
-    setThemeMode('system');
-    setCustomTheme(systemTheme === 'dark' ? defaultDarkTheme : defaultLightTheme);
+  const updateCustomTheme = (updates: Partial<CustomTheme>) => {
+    const newTheme = { ...customTheme, ...updates };
+    setCustomTheme(newTheme);
+    // When custom theme is applied, keep the current mode but update colors
+    localStorage.setItem('customTheme', JSON.stringify(newTheme));
   };
 
-  // Determine if color is dark for auto dark mode detection
-  const isDarkColor = (hex: string): boolean => {
-    // Remove # if present
-    hex = hex.replace('#', '');
-    // Convert to RGB
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
-    // Calculate luminance
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    return luminance < 0.5;
+  const resetToDefault = (mode: 'light' | 'dark') => {
+    setThemeMode(mode);
+    setCustomTheme(mode === 'light' ? defaultLightTheme : defaultDarkTheme);
   };
+
+  // Prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-950 to-black">
+        <div className="flex items-center justify-center h-screen">
+          <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <ThemeContext.Provider value={{
       themeMode,
       customTheme,
       setThemeMode,
+      toggleTheme,
       updateCustomTheme,
-      resetToSystem
+      resetToDefault,
     }}>
       {children}
     </ThemeContext.Provider>

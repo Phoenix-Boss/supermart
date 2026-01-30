@@ -1,119 +1,64 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import MarketplaceHeader from './marketplaceheader';
+import { useState } from 'react';
 import ProductModal from './product';
-import Footer from './footer';
 import CategoryCard from './categorygrid';
-
-// ────────────────────────────────────────────────
-// Scrolling Banner (News Ticker)
-// ────────────────────────────────────────────────
-function ScrollingBanner() {
-  const deals = [
-    "🔥 Awoof of the Month: Pay Small Small + Free Delivery on Selected Items!",
-    "🎉 Flash Sale LIVE: Up to 70% OFF on Electronics & Phones!",
-    "🚚 Free Delivery Nationwide for orders above ₦20,000",
-    "📱 0% Interest Installment on Phones & Laptops",
-    "🎁 Win ₦50,000 Shopping Voucher – Enter Daily Giveaway!",
-  ];
-
-  return (
-    <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white py-2 overflow-hidden shadow-sm">
-      <div className="relative">
-        <div className="flex animate-scroll whitespace-nowrap">
-          {[...deals, ...deals].map((deal, idx) => (
-            <div key={idx} className="inline-flex items-center mx-8">
-              <span className="text-sm font-medium">{deal}</span>
-              <div className="mx-8 text-white/50">•</div>
-            </div>
-          ))}
-        </div>
-        <style jsx>{`
-          @keyframes scroll {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-          }
-          .animate-scroll {
-            animation: scroll 50s linear infinite;
-            display: inline-flex;
-          }
-          .animate-scroll:hover { animation-play-state: paused; }
-        `}</style>
-      </div>
-    </div>
-  );
-}
-
-// ────────────────────────────────────────────────
-// Horizontal Categories
-// ────────────────────────────────────────────────
-function HorizontalCategories() {
-  const categories = [
-    'Phones & Tablets',
-    'Electronics',
-    'Fashion',
-    'Home & Office',
-    'Health & Beauty',
-    'Supermarket',
-    'Baby Products',
-    'Computing',
-  ];
-
-  return (
-    <div className="bg-white border-b border-gray-200 py-3 sticky top-0 z-40 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex flex-wrap justify-center gap-2 md:gap-3">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              className={`
-                px-4 py-2 text-xs md:text-sm font-medium rounded-full
-                border border-orange-600 text-orange-600 bg-white
-                transition-all duration-300
-                hover:bg-orange-600 hover:text-white hover:border-transparent
-                focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2
-              `}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
+import AddToCartButton from '../../components/AddToCartButton';
+import { useCart } from '../../components/CartProvider';
+import { useTheme } from '../../components/theme/themeprovider';
+import ScrollingBanner from './ScrollingBanner'; // Extract this if needed
+import HorizontalCategories from './HorizontalCategories'; // Extract this if needed
 
 // ────────────────────────────────────────────────
 // Product Card with Modal Trigger
 // ────────────────────────────────────────────────
 function ProductCard({ product, onCardClick }: { product: any; onCardClick: (product: any) => void }) {
+  const { themeMode } = useTheme();
+
   return (
     <div 
       onClick={() => onCardClick(product)}
-      className="group relative overflow-hidden rounded-lg bg-gray-100 aspect-square cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-md"
+      className={`
+        group relative overflow-hidden rounded-lg aspect-square cursor-pointer 
+        transition-all duration-300 hover:scale-[1.03] outline-none
+        ${themeMode === 'dark' 
+          ? 'bg-gray-900/40 backdrop-blur-sm hover:shadow-orange-500/5 border border-gray-800 hover:border-orange-500/50' 
+          : 'bg-white/80 backdrop-blur-sm hover:shadow-gray-300 border border-gray-200 hover:border-orange-500'
+        }
+      `}
     >
       {/* Image placeholder */}
-      <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
-        <div className="text-gray-500 text-3xl font-bold">{product.name.charAt(0)}</div>
+      <div className={`absolute inset-0 flex items-center justify-center ${
+        themeMode === 'dark' ? 'bg-gray-800/40' : 'bg-gray-100/60'
+      }`}>
+        <div className={`text-3xl font-bold ${
+          themeMode === 'dark' ? 'text-gray-400' : 'text-gray-600'
+        }`}>
+          {product.name.charAt(0)}
+        </div>
       </div>
 
       {/* Discount badge */}
       {product.discount && (
-        <span className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded z-20">
+        <span className="absolute top-2 left-2 bg-gradient-to-r from-red-600 to-red-500 text-white text-xs font-bold px-2 py-1 rounded-full z-20 shadow-lg">
           -{product.discount}%
         </span>
       )}
 
       {/* Bottom overlay info */}
-      <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70 to-transparent z-10">
+      <div className={`absolute bottom-0 left-0 right-0 p-3 ${
+        themeMode === 'dark' 
+          ? 'bg-gradient-to-t from-black/90 to-transparent' 
+          : 'bg-gradient-to-t from-gray-900/80 to-transparent'
+      } z-10`}>
         <h3 className="text-sm font-medium text-white line-clamp-2 mb-1 drop-shadow-md">
           {product.name}
         </h3>
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
-            <span className="text-base font-bold text-orange-400 drop-shadow-md">
+            <span className={`text-base font-bold drop-shadow-md ${
+              themeMode === 'dark' ? 'text-orange-400' : 'text-orange-500'
+            }`}>
               ₦{product.price.toLocaleString()}
             </span>
             {product.original && (
@@ -122,23 +67,17 @@ function ProductCard({ product, onCardClick }: { product: any; onCardClick: (pro
               </span>
             )}
           </div>
-          {/* Plus icon - stops propagation to avoid opening modal */}
-          <button 
-            className="bg-orange-600 hover:bg-orange-700 p-2 rounded-full opacity-90 hover:opacity-100 transition"
-            onClick={(e) => {
-              e.stopPropagation();
-              alert(`"${product.name}" added to cart! (Demo)`);
-            }}
-          >
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-          </button>
+          <AddToCartButton 
+            product={product}
+            variant="icon"
+          />
         </div>
       </div>
 
       {/* Hover overlay */}
-      <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition" />
+      <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-300 ${
+        themeMode === 'dark' ? 'bg-white/5' : 'bg-black/5'
+      }`} />
     </div>
   );
 }
@@ -149,6 +88,10 @@ function ProductCard({ product, onCardClick }: { product: any; onCardClick: (pro
 export default function MarketplaceHome() {
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Get cart data from context
+  const { totalItems } = useCart();
+  const { themeMode } = useTheme();
 
   // Flash Sales
   const flashProducts = [
@@ -233,166 +176,268 @@ export default function MarketplaceHome() {
   };
 
   return (
-    <div className="bg-white min-h-screen relative">
-      <MarketplaceHeader />
-      <ScrollingBanner />
-      <HorizontalCategories />
-
-      {/* Flash Sales Section */}
-      <section className="py-6 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <h2 className="text-2xl font-bold text-gray-900">⚡ Flash Sales</h2>
-              <div className="flex items-center gap-1">
-                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                <span className="text-xs text-red-600 font-bold">LIVE NOW</span>
+    <div className={`min-h-screen relative ${
+      themeMode === 'dark' 
+        ? 'bg-black text-white' 
+        : 'bg-white text-gray-900'
+    }`}>
+      {/* Scrolling Banner - You can extract this to its own component */}
+      <div className={`py-2 overflow-hidden shadow-sm ${
+        themeMode === 'dark' 
+          ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white' 
+          : 'bg-gradient-to-r from-orange-400 to-red-500 text-white'
+      }`}>
+        <div className="relative">
+          <div className="flex animate-scroll whitespace-nowrap">
+            {[
+              "🔥 Awoof of the Month: Pay Small Small + Free Delivery on Selected Items!",
+              "🎉 Flash Sale LIVE: Up to 70% OFF on Electronics & Phones!",
+              "🚚 Free Delivery Nationwide for orders above ₦20,000",
+              "📱 0% Interest Installment on Phones & Laptops",
+              "🎁 Win ₦50,000 Shopping Voucher – Enter Daily Giveaway!",
+            ].map((deal, idx) => (
+              <div key={idx} className="inline-flex items-center mx-8">
+                <span className="text-sm font-medium">{deal}</span>
+                <div className="mx-8 text-white/50">•</div>
               </div>
+            ))}
+          </div>
+          <style jsx>{`
+            @keyframes scroll {
+              0% { transform: translateX(0); }
+              100% { transform: translateX(-50%); }
+            }
+            .animate-scroll {
+              animation: scroll 50s linear infinite;
+              display: inline-flex;
+            }
+            .animate-scroll:hover { animation-play-state: paused; }
+          `}</style>
+        </div>
+      </div>
+
+      {/* Horizontal Categories - You can extract this to its own component */}
+      <div className={`py-3 sticky top-16 md:top-20 z-40 ${
+        themeMode === 'dark' 
+          ? 'bg-black/80 backdrop-blur-sm border-b border-gray-800' 
+          : 'bg-white backdrop-blur-sm border-b border-gray-200 shadow-sm'
+      }`}>
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex flex-wrap justify-center gap-2 md:gap-3">
+            {[
+              'Phones & Tablets',
+              'Electronics',
+              'Fashion',
+              'Home & Office',
+              'Health & Beauty',
+              'Supermarket',
+              'Baby Products',
+              'Computing',
+            ].map((cat) => (
+              <button
+                key={cat}
+                className={`
+                  px-4 py-2 text-xs md:text-sm font-medium rounded-full
+                  transition-all duration-300 outline-none
+                  ${themeMode === 'dark' 
+                    ? 'border border-gray-800 text-gray-300 bg-gray-900/50 hover:border-orange-500/50 hover:text-orange-400 hover:bg-gray-800/50 active:border-orange-500/50 active:text-orange-400' 
+                    : 'border border-gray-300 text-gray-700 bg-gray-50/80 hover:border-orange-500 hover:text-orange-600 hover:bg-orange-50/80 active:border-orange-500 active:text-orange-600'
+                  }
+                `}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="pt-4">
+        {/* Flash Sales Section */}
+        <section className="py-6">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <h2 className={`text-2xl font-bold ${
+                  themeMode === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}>
+                  ⚡ Flash Sales
+                </h2>
+                <div className="flex items-center gap-1">
+                  <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                  <span className={`text-xs font-bold ${
+                    themeMode === 'dark' ? 'text-red-400' : 'text-red-600'
+                  }`}>
+                    LIVE NOW
+                  </span>
+                </div>
+              </div>
+              <a href="#" className={`text-sm font-medium flex items-center gap-1 ${
+                themeMode === 'dark' 
+                  ? 'text-orange-400 hover:text-orange-300' 
+                  : 'text-orange-600 hover:text-orange-700'
+              }`}>
+                See All <span className="text-lg">→</span>
+              </a>
             </div>
-            <a href="#" className="text-orange-600 hover:text-orange-700 text-sm font-medium flex items-center gap-1">
-              See All <span className="text-lg">→</span>
-            </a>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {flashProducts.map((p) => (
+                <ProductCard key={p.id} product={p} onCardClick={openModal} />
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {flashProducts.map((p) => (
-              <ProductCard key={p.id} product={p} onCardClick={openModal} />
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Beauty Deals Section */}
-      <section className="py-6 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-900">💄 Beauty Deals</h2>
-            <a href="#" className="text-orange-600 hover:text-orange-700 text-sm font-medium flex items-center gap-1">
-              See All <span className="text-lg">→</span>
-            </a>
+        {/* Categories Section */}
+        <section className="py-6">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {categories.map((category) => (
+                <CategoryCard 
+                  key={category.id} 
+                  icon={category.icon} 
+                  name={category.name} 
+                  color={category.color}
+                  items={category.items}
+                />
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {beautyDeals.map((p) => (
-              <ProductCard key={p.id} product={p} onCardClick={openModal} />
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Computing Deals Section */}
-      <section className="py-6 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-900">💻 Top Computing Deals</h2>
-            <a href="#" className="text-orange-600 hover:text-orange-700 text-sm font-medium flex items-center gap-1">
-              See All <span className="text-lg">→</span>
-            </a>
+        {/* Beauty Deals Section */}
+        <section className="py-6">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className={`text-2xl font-bold ${
+                themeMode === 'dark' ? 'text-white' : 'text-gray-900'
+              }`}>
+                💄 Beauty Deals
+              </h2>
+              <a href="#" className={`text-sm font-medium flex items-center gap-1 ${
+                themeMode === 'dark' 
+                  ? 'text-orange-400 hover:text-orange-300' 
+                  : 'text-orange-600 hover:text-orange-700'
+              }`}>
+                See All <span className="text-lg">→</span>
+              </a>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {beautyDeals.map((p) => (
+                <ProductCard key={p.id} product={p} onCardClick={openModal} />
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {computingDeals.map((p) => (
-              <ProductCard key={p.id} product={p} onCardClick={openModal} />
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Featured Products Section */}
-      <section className="py-6 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-900">⭐ Featured Products</h2>
-            <a href="#" className="text-orange-600 hover:text-orange-700 text-sm font-medium flex items-center gap-1">
-              See All <span className="text-lg">→</span>
-            </a>
+        {/* Computing Deals Section */}
+        <section className="py-6">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className={`text-2xl font-bold ${
+                themeMode === 'dark' ? 'text-white' : 'text-gray-900'
+              }`}>
+                💻 Top Computing Deals
+              </h2>
+              <a href="#" className={`text-sm font-medium flex items-center gap-1 ${
+                themeMode === 'dark' 
+                  ? 'text-orange-400 hover:text-orange-300' 
+                  : 'text-orange-600 hover:text-orange-700'
+              }`}>
+                See All <span className="text-lg">→</span>
+              </a>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {computingDeals.map((p) => (
+                <ProductCard key={p.id} product={p} onCardClick={openModal} />
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {featuredProducts.slice(0, 5).map((p) => (
-              <ProductCard key={p.id} product={p} onCardClick={openModal} />
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Categories Section - NEW */}
-      <section className="py-8 bg-gradient-to-b from-gray-50 to-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">🛍️ Shop by Category</h2>
-            <p className="text-gray-500 text-sm mt-1">Browse our top categories and discover amazing deals</p>
+        {/* Featured Products Section */}
+        <section className="py-6">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className={`text-2xl font-bold ${
+                themeMode === 'dark' ? 'text-white' : 'text-gray-900'
+              }`}>
+                ⭐ Featured Products
+              </h2>
+              <a href="#" className={`text-sm font-medium flex items-center gap-1 ${
+                themeMode === 'dark' 
+                  ? 'text-orange-400 hover:text-orange-300' 
+                  : 'text-orange-600 hover:text-orange-700'
+              }`}>
+                See All <span className="text-lg">→</span>
+              </a>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {featuredProducts.slice(0, 5).map((p) => (
+                <ProductCard key={p.id} product={p} onCardClick={openModal} />
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
-            {categories.map((category) => (
-              <CategoryCard 
-                key={category.id} 
-                icon={category.icon} 
-                name={category.name} 
-                color={category.color}
-                items={category.items}
-              />
-            ))}
+        </section>
+
+        {/* Last Viewed Section */}
+        <section className="py-6">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className={`text-2xl font-bold ${
+                themeMode === 'dark' ? 'text-white' : 'text-gray-900'
+              }`}>
+                👁️ Last Viewed
+              </h2>
+              <a href="#" className={`text-sm font-medium flex items-center gap-1 ${
+                themeMode === 'dark' 
+                  ? 'text-orange-400 hover:text-orange-300' 
+                  : 'text-orange-600 hover:text-orange-700'
+              }`}>
+                See All <span className="text-lg">→</span>
+              </a>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              <ProductCard product={lastViewed} onCardClick={openModal} />
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Last Viewed Section */}
-      <section className="py-6 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-900">👁️ Last Viewed</h2>
-            <a href="#" className="text-orange-600 hover:text-orange-700 text-sm font-medium flex items-center gap-1">
-              See All <span className="text-lg">→</span>
-            </a>
+        {/* Best Sellers Section */}
+        <section className="py-6">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className={`text-2xl font-bold ${
+                themeMode === 'dark' ? 'text-white' : 'text-gray-900'
+              }`}>
+                🏆 Best Sellers
+              </h2>
+              <a href="#" className={`text-sm font-medium flex items-center gap-1 ${
+                themeMode === 'dark' 
+                  ? 'text-orange-400 hover:text-orange-300' 
+                  : 'text-orange-600 hover:text-orange-700'
+              }`}>
+                See All <span className="text-lg">→</span>
+              </a>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {bestSellers.map((p) => (
+                <ProductCard key={p.id} product={p} onCardClick={openModal} />
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            <ProductCard product={lastViewed} onCardClick={openModal} />
-          </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Best Sellers Section */}
-      <section className="py-6 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-900">🏆 Best Sellers</h2>
-            <a href="#" className="text-orange-600 hover:text-orange-700 text-sm font-medium flex items-center gap-1">
-              See All <span className="text-lg">→</span>
-            </a>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {bestSellers.map((p) => (
-              <ProductCard key={p.id} product={p} onCardClick={openModal} />
-            ))}
-          </div>
-        </div>
-      </section>
+        {/* Product Detail Modal */}
+        {isModalOpen && selectedProduct && (
+          <ProductModal 
+            product={selectedProduct} 
+            onClose={closeModal} 
+          />
+        )}
+      </div>
 
-      {/* Product Detail Modal */}
-      {isModalOpen && selectedProduct && (
-        <ProductModal 
-          product={selectedProduct} 
-          onClose={closeModal} 
-        />
-      )}
-
-      {/* Footer */}
-      <Footer />
-
-      {/* Back to Top Button */}
-      <button
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className="fixed bottom-6 right-6 bg-gradient-to-r from-orange-600 to-red-600 text-white p-3 rounded-full shadow-lg hover:from-orange-500 hover:to-red-500 transition-all duration-300 z-40 transform hover:scale-110 active:scale-95"
-      >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-        </svg>
-      </button>
-
-      {/* Floating Cart Button */}
-      <button className="fixed bottom-6 left-6 bg-gradient-to-r from-orange-600 to-red-600 text-white px-5 py-3 rounded-full shadow-lg hover:from-orange-500 hover:to-red-500 transition-all duration-300 z-40 transform hover:scale-105 active:scale-95 flex items-center gap-2">
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-        </svg>
-        <span className="font-medium">Cart (0)</span>
-      </button>
+      {/* Floating actions (cart + back to top) are now in layout.tsx */}
     </div>
   );
 }
