@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, ChangeEvent } from 'react';
 import Link from 'next/link';
 
 export default function CheckoutPage() {
@@ -44,11 +44,28 @@ export default function CheckoutPage() {
   const tax = subtotal * 0.075; // 7.5% VAT
   const total = subtotal + shipping + tax;
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    
+    if (e.target instanceof HTMLInputElement && type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData(prev => ({
+        ...prev,
+        [name]: checked
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+
+  const handleCheckboxChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: checked
     }));
   };
 
@@ -62,6 +79,16 @@ export default function CheckoutPage() {
     if (activeStep > 0) {
       setActiveStep(activeStep - 1);
     }
+  };
+
+  const isStep1Valid = () => {
+    return formData.email && 
+           formData.firstName && 
+           formData.lastName && 
+           formData.phone && 
+           formData.address && 
+           formData.city && 
+           formData.state;
   };
 
   return (
@@ -250,7 +277,7 @@ export default function CheckoutPage() {
                       type="checkbox"
                       name="saveInfo"
                       checked={formData.saveInfo}
-                      onChange={handleInputChange}
+                      onChange={handleCheckboxChange}
                       className="mt-1 h-4 w-4 text-blue-600 rounded"
                     />
                     <label className="ml-2 text-sm text-gray-600">
@@ -268,9 +295,9 @@ export default function CheckoutPage() {
                     </Link>
                     <button
                       onClick={nextStep}
-                      disabled={!formData.email || !formData.firstName || !formData.lastName || !formData.phone || !formData.address || !formData.city || !formData.state}
+                      disabled={!isStep1Valid()}
                       className={`px-8 py-3 rounded-lg font-bold text-white ${
-                        !formData.email || !formData.firstName || !formData.lastName || !formData.phone || !formData.address || !formData.city || !formData.state
+                        !isStep1Valid()
                           ? 'bg-gray-300 cursor-not-allowed'
                           : 'bg-blue-600 hover:bg-blue-700'
                       }`}
@@ -304,7 +331,7 @@ export default function CheckoutPage() {
                           name="paymentMethod"
                           value="card"
                           checked={formData.paymentMethod === 'card'}
-                          onChange={() => {}}
+                          onChange={() => setFormData({...formData, paymentMethod: 'card'})}
                           className="form-radio text-blue-600"
                         />
                         <div className="flex-1">
@@ -333,7 +360,7 @@ export default function CheckoutPage() {
                           name="paymentMethod"
                           value="bank"
                           checked={formData.paymentMethod === 'bank'}
-                          onChange={() => {}}
+                          onChange={() => setFormData({...formData, paymentMethod: 'bank'})}
                           className="form-radio text-blue-600"
                         />
                         <div className="flex-1">
@@ -358,7 +385,7 @@ export default function CheckoutPage() {
                           name="paymentMethod"
                           value="ussd"
                           checked={formData.paymentMethod === 'ussd'}
-                          onChange={() => {}}
+                          onChange={() => setFormData({...formData, paymentMethod: 'ussd'})}
                           className="form-radio text-blue-600"
                         />
                         <div className="flex-1">
