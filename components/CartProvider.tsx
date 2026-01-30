@@ -24,16 +24,7 @@ interface CartContextType {
   getItemCount: (id: number) => number; // Helper to get count for specific item
 }
 
-const CartContext = createContext<CartContextType>({
-  items: [],
-  addItem: () => {},
-  removeItem: () => {},
-  updateQuantity: () => {},
-  clearCart: () => {},
-  totalItems: 0,
-  totalPrice: 0,
-  getItemCount: () => 0,
-});
+const CartContext = createContext<CartContextType | undefined>(undefined);
 
 // Client-only wrapper to prevent hydration errors
 function ClientOnlyCartProvider({ children }: { children: React.ReactNode }) {
@@ -106,9 +97,9 @@ function ClientOnlyCartProvider({ children }: { children: React.ReactNode }) {
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-  // Don't render until mounted (client-side)
+  // Don't render context until mounted (client-side)
   if (!mounted) {
-    return <>{children}</>;
+    return null; // or a loading skeleton
   }
 
   return (
@@ -139,3 +130,19 @@ export const useCart = () => {
   }
   return context;
 };
+
+// Helper function to add item with proper defaults
+export function prepareCartItem(
+  product: any, 
+  quantity: number = 1
+): CartItem {
+  return {
+    id: product.id,
+    name: product.name,
+    price: product.price || 0,
+    quantity: quantity,
+    originalPrice: product.original || product.price,
+    discount: product.discount,
+    image: product.image
+  };
+}

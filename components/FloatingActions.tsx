@@ -43,7 +43,7 @@ export default function FloatingActions({
   const [initialPosition, setInitialPosition] = useState({ x: 0, y: 0 });
   const DRAG_THRESHOLD = 5;
   
-  const { totalItems, addItem } = useCart();
+  const { totalItems } = useCart();
   const { themeMode } = useTheme();
 
   // Set initial position to bottom right (above back-to-top button)
@@ -195,9 +195,23 @@ export default function FloatingActions({
 
   // Add product to cart from FloatingActions if needed
   const handleQuickAddToCart = () => {
-    if (product && addItem && onAddToCart) {
+    if (product && onAddToCart) {
       // Use the provided onAddToCart function
       onAddToCart();
+    }
+  };
+
+  // Handle cart button click - either quick add or navigate to cart
+  const handleCartButtonClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (product && onAddToCart) {
+      // If we have a product and add-to-cart handler, use it
+      handleQuickAddToCart();
+    } else {
+      // Otherwise navigate to cart page
+      router.push('/cart');
     }
   };
 
@@ -233,7 +247,7 @@ export default function FloatingActions({
           }`}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={handleQuickAddToCart}
+          onClick={handleCartButtonClick}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
