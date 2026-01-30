@@ -6,8 +6,6 @@ import CategoryCard from './categorygrid';
 import AddToCartButton from '../../components/AddToCartButton';
 import { useCart } from '../../components/CartProvider';
 import { useTheme } from '../../components/theme/themeprovider';
-import ScrollingBanner from './ScrollingBanner'; // Extract this if needed
-import HorizontalCategories from './HorizontalCategories'; // Extract this if needed
 
 // ────────────────────────────────────────────────
 // Product Card with Modal Trigger
@@ -181,7 +179,7 @@ export default function MarketplaceHome() {
         ? 'bg-black text-white' 
         : 'bg-white text-gray-900'
     }`}>
-      {/* Scrolling Banner - You can extract this to its own component */}
+      {/* Scrolling Banner - Inline implementation */}
       <div className={`py-2 overflow-hidden shadow-sm ${
         themeMode === 'dark' 
           ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white' 
@@ -216,7 +214,7 @@ export default function MarketplaceHome() {
         </div>
       </div>
 
-      {/* Horizontal Categories - You can extract this to its own component */}
+      {/* Horizontal Categories - Inline implementation */}
       <div className={`py-3 sticky top-16 md:top-20 z-40 ${
         themeMode === 'dark' 
           ? 'bg-black/80 backdrop-blur-sm border-b border-gray-800' 
