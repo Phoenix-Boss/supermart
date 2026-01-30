@@ -102,6 +102,14 @@ export default function VendorStoreHome({ vendor }: VendorStoreHomeProps) {
     { id: 6, name: 'Supplies', count: 87 }
   ];
 
+  // Helper function to get stock color
+  const getStockColor = (stock: string | number): string => {
+    if (typeof stock === 'string') {
+      return 'text-green-600';
+    }
+    return stock < 10 ? 'text-red-600' : 'text-gray-600';
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* Vendor Header */}
@@ -193,7 +201,7 @@ export default function VendorStoreHome({ vendor }: VendorStoreHomeProps) {
 
                   {/* Stock & Action */}
                   <div className="flex justify-between items-center">
-                    <span className={`text-sm ${product.stock === 'Unlimited' ? 'text-green-600' : product.stock < 10 ? 'text-red-600' : 'text-gray-600'}`}>
+                    <span className={`text-sm ${getStockColor(product.stock)}`}>
                       {product.stock === 'Unlimited' ? 'In Stock' : `${product.stock} left`}
                     </span>
                     <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">

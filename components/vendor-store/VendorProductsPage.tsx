@@ -3,6 +3,18 @@
 import { useState } from 'react';
 import Link from 'next/link';
 
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  stock: number;  // Changed from string | number to just number
+  category: string;
+  status: 'active' | 'low_stock' | 'out_of_stock' | 'inactive';
+  image: string;
+  sales: number;
+  rating: number;
+}
+
 interface VendorProductsPageProps {
   vendor: {
     name: string;
@@ -14,8 +26,8 @@ interface VendorProductsPageProps {
 export default function VendorProductsPage({ vendor }: VendorProductsPageProps) {
   const primaryColor = vendor.theme_config?.primary_color || '#8B5CF6';
 
-  // Dummy products
-  const [products, setProducts] = useState([
+  // Dummy products with proper typing
+  const [products, setProducts] = useState<Product[]>([
     {
       id: 1,
       name: 'Handmade Crystal Necklace',
@@ -111,7 +123,7 @@ export default function VendorProductsPage({ vendor }: VendorProductsPageProps) 
   const [selectedStatus, setSelectedStatus] = useState('all');
 
   const categories = ['all', 'Jewelry', 'Kits', 'Custom', 'Accessories'];
-  const statuses = ['all', 'active', 'low_stock', 'out_of_stock'];
+  const statuses = ['all', 'active', 'low_stock', 'out_of_stock', 'inactive'];
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -123,9 +135,26 @@ export default function VendorProductsPage({ vendor }: VendorProductsPageProps) 
   const toggleProductStatus = (id: number) => {
     setProducts(products.map(product => 
       product.id === id 
-        ? { ...product, status: product.status === 'active' ? 'inactive' : 'active' }
+        ? { 
+            ...product, 
+            status: product.status === 'active' ? 'inactive' : 'active' as Product['status']
+          }
         : product
     ));
+  };
+
+  // Helper function to get stock display text
+  const getStockDisplayText = (stock: number): string => {
+    if (stock === 0) return 'Out of Stock';
+    if (stock < 10) return 'Low Stock';
+    return 'In Stock';
+  };
+
+  // Helper function to get stock badge classes
+  const getStockBadgeClasses = (stock: number): string => {
+    if (stock === 0) return 'bg-red-100 text-red-800';
+    if (stock < 10) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-green-100 text-green-800';
   };
 
   return (
@@ -167,7 +196,7 @@ export default function VendorProductsPage({ vendor }: VendorProductsPageProps) 
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <div className="text-sm text-gray-600 mb-1">Low Stock</div>
             <div className="text-2xl font-bold text-red-600">
-              {products.filter(p => p.status === 'low_stock').length}
+              {products.filter(p => p.stock < 10 && p.stock > 0).length}
             </div>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -272,12 +301,8 @@ export default function VendorProductsPage({ vendor }: VendorProductsPageProps) 
                       ₦{product.price.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        product.stock === 0 ? 'bg-red-100 text-red-800' :
-                        product.stock < 10 ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-green-100 text-green-800'
-                      }`}>
-                        {product.stock} {product.stock === 0 ? 'Out' : 'In Stock'}
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStockBadgeClasses(product.stock)}`}>
+                        {product.stock} {getStockDisplayText(product.stock)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
