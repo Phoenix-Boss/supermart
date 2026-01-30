@@ -35,7 +35,7 @@ interface ProductDetailProps {
 export default function ProductDetail({ product, context, vendor }: ProductDetailProps) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [selectedOptions, setSelectedOptions] = useState({});
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
 
   const dummyImages = [
     '/placeholder-product-1.jpg',
@@ -94,6 +94,22 @@ export default function ProductDetail({ product, context, vendor }: ProductDetai
 
   const primaryColor = vendor?.theme_config?.primary_color || '#4F46E5';
 
+  // Helper function to check stock level
+  const getStockLevelColor = (stock: number | string): string => {
+    if (typeof stock === 'string') {
+      return 'text-gray-600'; // For string values like "Unlimited"
+    }
+    return stock < 10 ? 'text-red-600' : 'text-green-600';
+  };
+
+  // Helper function to get stock display text
+  const getStockDisplayText = (stock: number | string): string => {
+    if (typeof stock === 'string') {
+      return stock; // Return the string as-is
+    }
+    return `${stock} ${stock === 1 ? 'item' : 'items'} left in stock`;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Breadcrumb */}
@@ -115,7 +131,7 @@ export default function ProductDetail({ product, context, vendor }: ProductDetai
           {/* Left: Images */}
           <div>
             {/* Main Image */}
-            <div className="bg-gray-100 rounded-xl aspect-square mb-4 flex items-center justify-center">
+            <div className="bg-gray-100 rounded-xl aspect-square mb-4 flex items-center justify-center relative">
               <div className="w-64 h-64 bg-gradient-to-br from-gray-300 to-gray-400 rounded-lg"></div>
               {product.discount && (
                 <div className="absolute top-4 left-4 bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full">
@@ -210,10 +226,8 @@ export default function ProductDetail({ product, context, vendor }: ProductDetai
                 )}
               </div>
               {product.stock !== 'Unlimited' && (
-                <p className={`text-sm mt-2 ${
-                  product.stock < 10 ? 'text-red-600' : 'text-green-600'
-                }`}>
-                  {product.stock} {product.stock === 1 ? 'item' : 'items'} left in stock
+                <p className={`text-sm mt-2 ${getStockLevelColor(product.stock)}`}>
+                  {getStockDisplayText(product.stock)}
                 </p>
               )}
             </div>
