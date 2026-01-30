@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AddToCartButton from '../../components/AddToCartButton';
-import FloatingActions from '../../components/FloatingActions'; // Add this import
+import FloatingActions from '../../components/FloatingActions'; // Fixed import
 import { useCart } from '../../components/CartProvider';
 import { useTheme } from '../../components/theme/themeprovider';
 
@@ -11,6 +11,20 @@ interface ProductModalProps {
   product: any;
   onClose: () => void;
 }
+
+// Add missing animation styles
+const styles = `
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+  }
+  .animate-slideIn { animation: slideIn 0.3s ease-out forwards; }
+  .animate-slideOut { animation: slideOut 0.3s ease-in forwards; }
+`;
 
 export default function ProductModal({ product, onClose }: ProductModalProps) {
   const [quantity, setQuantity] = useState(1);
@@ -650,24 +664,6 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                     </div>
                   </button>
                 )}
-              </div>
-
-              {/* Floating Actions Component */}
-              <div className="mt-8">
-                <FloatingActions 
-                  product={product}
-                  currentPrice={currentPrice}
-                  exclusivePrice={exclusivePrice}
-                  offerExpired={offerExpired}
-                  quantity={quantity}
-                  onQuantityChange={setQuantity}
-                  onAddToCart={handleAddToCart}
-                  onBuyNow={handleBuyNow}
-                  timeLeft={timeLeft}
-                  formatTime={formatTime}
-                  EXCLUSIVE_DISCOUNT={EXCLUSIVE_DISCOUNT}
-                  savings={savings}
-                />
               </div>
 
               {/* Cart Integration Note */}

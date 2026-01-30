@@ -6,7 +6,35 @@ import { motion } from 'framer-motion';
 import { useCart } from '../components/CartProvider';
 import { useTheme } from '../components/theme/themeprovider';
 
-export default function FloatingActions() {
+interface FloatingActionsProps {
+  product?: any;
+  currentPrice?: any;
+  exclusivePrice?: number;
+  offerExpired?: boolean;
+  quantity?: number;
+  onQuantityChange?: (quantity: number) => void;
+  onAddToCart?: () => void;
+  onBuyNow?: () => void;
+  timeLeft?: number;
+  formatTime?: (seconds: number) => string;
+  EXCLUSIVE_DISCOUNT?: number;
+  savings?: number;
+}
+
+export default function FloatingActions({
+  product,
+  currentPrice,
+  exclusivePrice,
+  offerExpired,
+  quantity = 1,
+  onQuantityChange,
+  onAddToCart,
+  onBuyNow,
+  timeLeft,
+  formatTime,
+  EXCLUSIVE_DISCOUNT,
+  savings
+}: FloatingActionsProps) {
   const router = useRouter();
   const cartButtonRef = useRef<HTMLDivElement>(null);
   const [cartPosition, setCartPosition] = useState({ x: 0, y: 0 });
@@ -15,7 +43,7 @@ export default function FloatingActions() {
   const [initialPosition, setInitialPosition] = useState({ x: 0, y: 0 });
   const DRAG_THRESHOLD = 5;
   
-  const { totalItems } = useCart();
+  const { totalItems, addItem } = useCart();
   const { themeMode } = useTheme();
 
   // Set initial position to bottom right (above back-to-top button)
@@ -165,20 +193,34 @@ export default function FloatingActions() {
     document.addEventListener('touchend', handleTouchEnd);
   };
 
+  // Add product to cart from FloatingActions if needed
+  const handleQuickAddToCart = () => {
+    if (product && addItem && onAddToCart) {
+      // Use the provided onAddToCart function
+      onAddToCart();
+    }
+  };
+
   return (
     <>
+      <style>{`
+        .floating-actions-container {
+          position: fixed;
+          z-index: 50;
+          user-select: none;
+          touch-action: none;
+        }
+      `}</style>
+
       {/* DRAGGABLE FLOATING CART BUTTON - Positioned above back-to-top */}
       <div
         ref={cartButtonRef}
+        className="floating-actions-container"
         style={{
-          position: 'fixed',
           right: `${window.innerWidth - cartPosition.x}px`,
           bottom: `${window.innerHeight - cartPosition.y}px`,
-          zIndex: 50,
           cursor: 'grab',
-          userSelect: 'none',
-          touchAction: 'none',
-          transform: 'translateX(50%)', // Center horizontally on the right
+          transform: 'translateX(50%)',
         }}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
@@ -191,6 +233,7 @@ export default function FloatingActions() {
           }`}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
+          onClick={handleQuickAddToCart}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
