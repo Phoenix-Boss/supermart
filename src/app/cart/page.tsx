@@ -242,7 +242,7 @@ export default function CartPage() {
                   style={{
                     animation: `slideIn 0.4s ease-out ${index * 0.1}s both`
                   }}
-                  onMouseEnter={() => setIsHovered(item.id)}
+                  onMouseEnter={() => setIsHovered(item.id.toString())}  // Fixed: convert to string
                   onMouseLeave={() => setIsHovered(null)}
                 >
                   <div className="relative flex flex-col h-full">
@@ -286,7 +286,7 @@ export default function CartPage() {
                           {/* Total Price */}
                           <div className="text-right">
                             <div className={`text-base font-bold ${
-                              isHovered === item.id 
+                              isHovered === item.id.toString()  // Fixed: compare with string
                                 ? isDarkMode 
                                   ? 'text-white bg-gray-900/50 px-2 py-1 rounded' 
                                   : 'text-gray-900 bg-gray-100 px-2 py-1 rounded'
